@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Price Admin | Apical Dental Hub</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/assets/js/tailwind-config.js"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body class="min-h-screen bg-ice font-sans text-slate antialiased">
+  <header class="border-b border-slate-200/70 bg-white">
+    <div class="mx-auto flex h-16 max-w-4xl items-center justify-between px-5">
+      <a href="/" class="font-extrabold tracking-tight text-navy">APICAL <span class="text-xs font-semibold uppercase tracking-[0.2em] text-cyan">Price admin</span></a>
+      <button id="logout" type="button" class="hidden rounded-full px-4 py-2 text-sm font-semibold text-navy hover:bg-ice">Log out</button>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-5 py-10">
+    <!-- LOGIN -->
+    <section id="login-view" class="mx-auto hidden max-w-sm rounded-3xl bg-white p-8 shadow-lift">
+      <h1 class="text-2xl font-extrabold tracking-tight text-navy">Owner login</h1>
+      <p class="mt-1 text-sm">Enter the admin password to edit prices.</p>
+      <form id="login-form" class="mt-6 space-y-4">
+        <label class="block text-sm font-semibold text-navy" for="pw">Password</label>
+        <input id="pw" type="password" autocomplete="current-password" required class="field">
+        <button class="w-full rounded-full bg-medical px-6 py-3 font-semibold text-white hover:bg-[#1976D2]">Log in</button>
+        <p id="login-msg" class="text-sm text-red-600" role="alert"></p>
+      </form>
+    </section>
+
+    <!-- EDITOR -->
+    <section id="editor-view" class="hidden">
+      <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <h1 class="text-3xl font-extrabold tracking-tight text-navy">Prices</h1>
+          <p class="mt-1 text-sm">Changes appear on the website within about a minute of saving. All prices are in KES.</p>
+        </div>
+        <a href="/pricing.html" target="_blank" class="text-sm font-semibold text-medical hover:underline">View pricing page ↗</a>
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-3xl bg-white shadow-soft">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate">
+            <tr><th class="px-4 py-3">Treatment</th><th class="px-4 py-3">Unit</th><th class="px-4 py-3">Price (KES)</th><th class="px-4 py-3"><span class="sr-only">Actions</span></th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <button id="add" type="button" class="rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-navy hover:border-medical">+ Add treatment</button>
+        <div class="flex items-center gap-4">
+          <p id="save-msg" class="text-sm" role="status"></p>
+          <button id="save" type="button" class="rounded-full bg-medical px-7 py-3 font-semibold text-white shadow-soft hover:bg-[#1976D2] disabled:opacity-50">Save changes</button>
+        </div>
+      </div>
+      <p class="mt-6 text-xs">The <strong>Braces</strong> row drives the estimator's per-jaw price, so it can be renamed or repriced but not deleted. Free consultation is always shown first.</p>
+    </section>
+  </main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var rows = $('rows'), dirty = false;
+
+  function api(method, url, body) {
+    return fetch(url, {
+      method: method, credentials: 'same-origin',
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || 'Request failed'); return d; }); });
+  }
+
+  function show(view) {
+    $('login-view').classList.toggle('hidden', view !== 'login');
+    $('editor-view').classList.toggle('hidden', view !== 'editor');
+    $('logout').classList.toggle('hidden', view !== 'editor');
+  }
+
+  var input = 'w-full rounded-xl border border-slate-200 px-3 py-2 focus:border-medical';
+  function addRow(p) {
+    p = p || { id: '', name: '', unit: 'per session', price: 0 };
+    var tr = document.createElement('tr');
+    tr.className = 'border-t border-slate-100';
+    tr.dataset.id = p.id;
+    tr.innerHTML =
+      '<td class="px-4 py-2"><input class="' + input + '" data-f="name" maxlength="60" aria-label="Treatment name"></td>' +
+      '<td class="px-4 py-2"><input class="' + input + '" data-f="unit" maxlength="30" aria-label="Unit"></td>' +
+      '<td class="px-4 py-2"><input class="' + input + ' tabular-nums" data-f="price" type="number" min="0" step="100" aria-label="Price in KES"></td>' +
+      '<td class="px-4 py-2 text-right whitespace-nowrap">' +
+        '<button type="button" data-a="up" class="rounded-lg px-2 py-1 hover:bg-ice" aria-label="Move up">↑</button>' +
+        '<button type="button" data-a="down" class="rounded-lg px-2 py-1 hover:bg-ice" aria-label="Move down">↓</button>' +
+        (p.id === 'braces' ? '' : '<button type="button" data-a="del" class="rounded-lg px-2 py-1 text-red-600 hover:bg-red-50" aria-label="Delete">✕</button>') +
+      '</td>';
+    tr.querySelector('[data-f=name]').value = p.name;
+    tr.querySelector('[data-f=unit]').value = p.unit;
+    tr.querySelector('[data-f=price]').value = p.price;
+    rows.appendChild(tr);
+    return tr;
+  }
+
+  function load() {
+    return api('GET', '/api/prices').then(function (d) {
+      rows.innerHTML = '';
+      d.items.forEach(addRow);
+      dirty = false;
+      if (d.fallback) msg('Database not connected — showing default prices. Check DATABASE_URL in Vercel.', true);
+    });
+  }
+
+  function msg(text, bad) { var m = $('save-msg'); m.textContent = text; m.className = 'text-sm ' + (bad ? 'text-red-600' : 'text-emerald-600'); }
+
+  rows.addEventListener('input', function () { dirty = true; msg(''); });
+  rows.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var tr = b.closest('tr');
+    if (b.dataset.a === 'del' && confirmDelete(tr)) tr.remove();
+    if (b.dataset.a === 'up' && tr.previousElementSibling) rows.insertBefore(tr, tr.previousElementSibling);
+    if (b.dataset.a === 'down' && tr.nextElementSibling) rows.insertBefore(tr.nextElementSibling, tr);
+    dirty = true;
+  });
+  function confirmDelete(tr) { return window.confirm('Delete "' + (tr.querySelector('[data-f=name]').value || 'this row') + '"?'); }
+
+  $('add').addEventListener('click', function () { addRow().querySelector('input').focus(); dirty = true; });
+
+  $('save').addEventListener('click', function () {
+    var items = Array.prototype.map.call(rows.children, function (tr) {
+      var v = function (f) { return tr.querySelector('[data-f=' + f + ']').value; };
+      return { id: tr.dataset.id, name: v('name'), unit: v('unit'), price: Number(v('price')) };
+    });
+    $('save').disabled = true; msg('Saving…');
+    api('PUT', '/api/prices', { items: items })
+      .then(function (d) { rows.innerHTML = ''; d.items.forEach(addRow); dirty = false; msg('Saved ✓'); })
+      .catch(function (err) { msg(err.message, true); if (/log in/i.test(err.message)) show('login'); })
+      .then(function () { $('save').disabled = false; });
+  });
+
+  $('login-form').addEventListener('submit', function (e) {
+    e.preventDefault(); $('login-msg').textContent = '';
+    api('POST', '/api/login', { password: $('pw').value })
+      .then(function () { $('pw').value = ''; show('editor'); return load(); })
+      .catch(function (err) { $('login-msg').textContent = err.message; });
+  });
+
+  $('logout').addEventListener('click', function () { api('DELETE', '/api/login').then(function () { show('login'); }); });
+  window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  api('GET', '/api/login').then(function (d) {
+    if (d.authed) { show('editor'); load(); } else show('login');
+  }).catch(function () { show('login'); });
+})();
+</script>
+</body>
+</html>

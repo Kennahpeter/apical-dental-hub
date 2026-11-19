@@ -35,6 +35,19 @@
     window.addEventListener('resize', function () { if (window.innerWidth >= 1024) setOpen(false); });
   }
 
+  /* ---------- Live prices on non-pricing pages (owner edits them at /admin) ---------- */
+  var priceEls = document.querySelectorAll('[data-price]');
+  if (priceEls.length && window.fetch) {
+    fetch('/api/prices').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      if (!d || !Array.isArray(d.items)) return;
+      var byId = {}; d.items.forEach(function (i) { byId[i.id] = i.price; });
+      priceEls.forEach(function (el) {
+        var v = byId[el.getAttribute('data-price')];
+        if (typeof v === 'number') el.textContent = v.toLocaleString('en-KE');
+      });
+    }).catch(function () {});
+  }
+
   /* ---------- Footer year ---------- */
   document.querySelectorAll('[data-year]').forEach(function (el) { el.textContent = new Date().getFullYear(); });
 
