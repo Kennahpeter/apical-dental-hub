@@ -65,7 +65,6 @@ Owner to-do list — these matter more than code for a local clinic:
 ## Other quick edits
 - **Brand colours:** `assets/js/tailwind-config.js`
 - **Navbar / footer / CTA:** identical in every page between `<!-- NAV START -->`/`<!-- NAV END -->` etc. Change one, paste into the others.
-- **Team names** on `about.html` are still placeholders.
 
 ## Local development
 ```
