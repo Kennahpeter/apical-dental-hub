@@ -2,9 +2,8 @@
   "name": "apical-dental-hub",
   "private": true,
   "type": "module",
-  "description": "Apical Dental Hub website — static pages + a small price admin on Vercel with Neon Postgres",
+  "description": "Apical Dental Hub website \u2014 static pages + a small price admin on Vercel with Neon Postgres",
   "scripts": {
-    "build": "npm run build:css",
     "build:css": "tailwindcss -c tailwind.config.cjs -i src/site.css -o assets/css/site.css --minify",
     "watch:css": "tailwindcss -c tailwind.config.cjs -i src/site.css -o assets/css/site.css --watch",
     "dev": "vercel dev",
