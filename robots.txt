@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /admin/
+Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://www.apicaldentalhub.co.ke/sitemap.xml
+Sitemap: https://apical-dental-hub.vercel.app/sitemap.xml
