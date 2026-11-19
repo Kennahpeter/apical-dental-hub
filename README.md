@@ -63,11 +63,12 @@ Owner to-do list — these matter more than code for a local clinic:
 - The clinic-room photos on Home/About/Contact are Unsplash stock — swap for real clinic photos when available.
 
 ## Other quick edits
-- **Brand colours:** `assets/js/tailwind-config.js`
+- **Brand colours / styles:** colours live in `tailwind.config.cjs`, custom CSS in `assets/css/styles.css`. After changing HTML classes or styles run `npm run build:css` (Vercel also runs it on every deploy) — pages load the built `assets/css/site.css`.
 - **Navbar / footer / CTA:** identical in every page between `<!-- NAV START -->`/`<!-- NAV END -->` etc. Change one, paste into the others.
 
 ## Local development
 ```
 npm install
+npm run watch:css   # rebuilds assets/css/site.css as you edit
 npx vercel dev      # serves pages + /api with your .env (copy .env.example → .env)
 ```

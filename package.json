@@ -4,11 +4,19 @@
   "type": "module",
   "description": "Apical Dental Hub website — static pages + a small price admin on Vercel with Neon Postgres",
   "scripts": {
+    "build": "npm run build:css",
+    "build:css": "tailwindcss -c tailwind.config.cjs -i src/site.css -o assets/css/site.css --minify",
+    "watch:css": "tailwindcss -c tailwind.config.cjs -i src/site.css -o assets/css/site.css --watch",
     "dev": "vercel dev",
     "set-domain": "node scripts/set-domain.mjs"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
   }
 }

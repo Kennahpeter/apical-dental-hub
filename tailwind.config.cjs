@@ -1,6 +1,7 @@
-/* Shared Tailwind config — loaded right after the Tailwind CDN script on every page.
-   Change brand colours here once and every page updates. */
-tailwind.config = {
+/* Brand colours, font and shadows. Change them here, then run `npm run build:css`
+   (Vercel runs it automatically on every deploy). */
+module.exports = {
+  content: ['./*.html', './admin/**/*.html', './assets/js/**/*.js'],
   theme: {
     extend: {
       colors: {
